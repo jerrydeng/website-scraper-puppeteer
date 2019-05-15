@@ -24,7 +24,7 @@ class PuppeteerPlugin {
         await page.close();
         return content + this.append;
       } else {
-        return response.body + this.append;
+        return response.body;
       }
     });
 
