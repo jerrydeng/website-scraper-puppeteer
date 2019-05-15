@@ -1,31 +1,35 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require("puppeteer");
 
 class PuppeteerPlugin {
-	apply(registerAction) {
-		let browser;
+  constructor({ append }) {
+    this.append = append;
+  }
 
-		registerAction('beforeStart', async () => {
-			browser = await puppeteer.launch();
-		});
+  apply(registerAction) {
+    let browser;
 
-		registerAction('afterResponse', async ({response}) => {
-			const contentType = response.headers['content-type'];
-			const isHtml = contentType && contentType.split(';')[0] === 'text/html';
-			if (isHtml) {
-				const url = response.request.href;
+    registerAction("beforeStart", async () => {
+      browser = await puppeteer.launch();
+    });
 
-				const page = await browser.newPage();
-				await page.goto(url);
-				const content = await page.content();
-				await page.close();
-				return content;
-			} else {
-				return response.body;
-			}
-		});
+    registerAction("afterResponse", async ({ response }) => {
+      const contentType = response.headers["content-type"];
+      const isHtml = contentType && contentType.split(";")[0] === "text/html";
+      if (isHtml) {
+        const url = response.request.href;
 
-		registerAction('afterFinish', () => browser.close());
-	}
+        const page = await browser.newPage();
+        await page.goto(url);
+        const content = await page.content();
+        await page.close();
+        return content + this.append;
+      } else {
+        return response.body + this.append;
+      }
+    });
+
+    registerAction("afterFinish", () => browser.close());
+  }
 }
 
 module.exports = PuppeteerPlugin;
